@@ -1,0 +1,3 @@
+# Ignorar carpeta aws y archivos .zip generados
+aws/
+*.zip
