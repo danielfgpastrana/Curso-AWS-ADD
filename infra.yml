@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Infraestructura mínima en AWS para instancia EC2 en VPC por defecto, siguiendo requerimientos del README.md.
+
+Parameters:
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64'
+    Description: 'AMI más reciente de Amazon Linux 2023.'
+  VpcId:
+    Type: String
+    Default: 'vpc-086fe118b4ed5c6e4'
+    Description: 'ID de la VPC por defecto.'
+  SubnetId:
+    Type: String
+    Description: 'ID de la subred pública en la VPC por defecto.'
+  InstanceType:
+    Type: String
+    Default: 't3.micro'
+    Description: 'Tipo de instancia EC2.'
+  InstanceName:
+    Type: String
+    Default: 'nombre'
+    Description: 'Nombre de la instancia EC2.'
+  SecurityGroupId:
+    Type: String
+    Description: 'ID del grupo de seguridad por defecto de la VPC.'
+
+Resources:
+  # Rol IAM mínimo para EC2
+  Ec2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Path: '/'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore # Permiso mínimo para administración
+
+  Ec2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref Ec2InstanceRole
+
+
+  # Instancia EC2 en VPC por defecto
+  Ec2Gabriel:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref LatestAmiId
+      IamInstanceProfile: !Ref Ec2InstanceProfile
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          SubnetId: !Ref SubnetId
+          GroupSet:
+            - !Ref SecurityGroupId
+      Tags:
+        - Key: Name
+          Value: !Ref InstanceName
+
+Outputs:
+  Ec2InstanceId:
+    Description: "ID de la instancia EC2 creada."
+    Value: !Ref Ec2Gabriel
+  Ec2PublicIp:
+    Description: "IP pública de la instancia EC2."
+    Value: !GetAtt Ec2Gabriel.PublicIp
