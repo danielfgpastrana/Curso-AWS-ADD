@@ -1,3 +1,63 @@
+# Librerías y recursos útiles
+
+- [CLI Command CloudFormation](https://docs.aws.amazon.com/cli/latest/reference/cloudformation/): Documentación oficial de los comandos CLI para CloudFormation.
+
+- [AWS CLI Builder](https://awsclibuilder.com/home/services/cloudformation): Generador visual de comandos para AWS CLI, útil para crear y modificar stacks de CloudFormation.
+- [Instalar un LAMP en Amazon Linux](https://docs.aws.amazon.com/linux/al2023/ug/ec2-lamp-amazon-linux-2023.html): Guía oficial para instalar un stack LAMP en Amazon Linux 2023.
+# Despliegue y gestión del stack en AWS CloudFormation
+
+## Crear el stack
+
+```bash
+aws cloudformation create-stack \
+	--stack-name danielfgpastrana-654654327431 \
+	--template-body file://infra.yml \
+	--capabilities CAPABILITY_IAM \
+	--region us-east-1 \
+	--profile default \
+	--output json \
+	--parameters \
+		ParameterKey=VpcId,ParameterValue=vpc-086fe118b4ed5c6e4 \
+		ParameterKey=SubnetId,ParameterValue=subnet-0f86fb485374f9f0a \
+		ParameterKey=InstanceType,ParameterValue=t3.micro \
+		ParameterKey=InstanceName,ParameterValue=nombre \
+		ParameterKey=SecurityGroupId,ParameterValue=sg-04f4c192bcfcf3f2b
+```
+
+## Cambiar el nombre de la instancia
+
+```bash
+aws cloudformation update-stack \
+	--stack-name danielfgpastrana-654654327431 \
+	--template-body file://infra.yml \
+	--capabilities CAPABILITY_IAM \
+	--region us-east-1 \
+	--profile default \
+	--output json \
+	--parameters \
+		ParameterKey=SubnetId,UsePreviousValue=true \
+		ParameterKey=SecurityGroupId,UsePreviousValue=true \
+		ParameterKey=VpcId,UsePreviousValue=true \
+		ParameterKey=InstanceType,UsePreviousValue=true \
+		ParameterKey=InstanceName,ParameterValue=danielfgpastrana
+```
+
+## Cambiar el tipo de instancia (por ejemplo, de t3.micro a t3.medium)
+
+```bash
+aws cloudformation update-stack \
+	--stack-name danielfgpastrana-654654327431 \
+	--template-body file://infra.yml \
+	--region us-east-1 \
+	--output json \
+	--capabilities CAPABILITY_IAM \
+	--parameters \
+		ParameterKey=SubnetId,UsePreviousValue=true \
+		ParameterKey=SecurityGroupId,UsePreviousValue=true \
+		ParameterKey=VpcId,UsePreviousValue=true \
+		ParameterKey=InstanceName,UsePreviousValue=true \
+		ParameterKey=InstanceType,ParameterValue=t3.medium
+```
 
 # Requerimientos de Diseño para la Infraestructura AWS
 
