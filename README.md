@@ -20,7 +20,7 @@ aws cloudformation create-stack \
 		ParameterKey=VpcId,ParameterValue=vpc-086fe118b4ed5c6e4 \
 		ParameterKey=SubnetId,ParameterValue=subnet-0f86fb485374f9f0a \
 		ParameterKey=InstanceType,ParameterValue=t3.micro \
-		ParameterKey=InstanceName,ParameterValue=nombre \
+		ParameterKey=InstanceName,ParameterValue=danielfgpastrana \
 		ParameterKey=SecurityGroupId,ParameterValue=sg-04f4c192bcfcf3f2b
 ```
 
