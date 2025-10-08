@@ -4,59 +4,67 @@
 
 - [AWS CLI Builder](https://awsclibuilder.com/home/services/cloudformation): Generador visual de comandos para AWS CLI, útil para crear y modificar stacks de CloudFormation.
 - [Instalar un LAMP en Amazon Linux](https://docs.aws.amazon.com/linux/al2023/ug/ec2-lamp-amazon-linux-2023.html): Guía oficial para instalar un stack LAMP en Amazon Linux 2023.
+
 # Despliegue y gestión del stack en AWS CloudFormation
 
-## Crear el stack
+## Uso del script parametrizable
+
+El script `create_stack.sh` permite crear o actualizar el stack de infraestructura de forma flexible y reutilizable, usando variables genéricas para todos los parámetros definidos en `infra.yml`.
+
+### Crear un stack nuevo
 
 ```bash
-aws cloudformation create-stack \
-	--stack-name danielfgpastrana-654654327431 \
-	--template-body file://infra.yml \
-	--capabilities CAPABILITY_IAM \
-	--region us-east-1 \
-	--profile default \
-	--output json \
-	--parameters \
-		ParameterKey=VpcId,ParameterValue=vpc-086fe118b4ed5c6e4 \
-		ParameterKey=SubnetId,ParameterValue=subnet-0f86fb485374f9f0a \
-		ParameterKey=InstanceType,ParameterValue=t3.micro \
-		ParameterKey=InstanceName,ParameterValue=danielfgpastrana \
-		ParameterKey=SecurityGroupId,ParameterValue=sg-04f4c192bcfcf3f2b
+./create_stack.sh
 ```
 
-## Cambiar el nombre de la instancia
+### Actualizar un stack existente (sin eliminar recursos)
 
 ```bash
-aws cloudformation update-stack \
-	--stack-name danielfgpastrana-654654327431 \
-	--template-body file://infra.yml \
-	--capabilities CAPABILITY_IAM \
-	--region us-east-1 \
-	--profile default \
-	--output json \
-	--parameters \
-		ParameterKey=SubnetId,UsePreviousValue=true \
-		ParameterKey=SecurityGroupId,UsePreviousValue=true \
-		ParameterKey=VpcId,UsePreviousValue=true \
-		ParameterKey=InstanceType,UsePreviousValue=true \
-		ParameterKey=InstanceName,ParameterValue=danielfgpastrana
+./create_stack.sh update
 ```
 
-## Cambiar el tipo de instancia (por ejemplo, de t3.micro a t3.medium)
+### Personalizar parámetros (por variables de entorno)
+
+Puedes sobreescribir cualquier parámetro exportando variables de entorno antes de ejecutar el script:
 
 ```bash
-aws cloudformation update-stack \
-	--stack-name danielfgpastrana-654654327431 \
-	--template-body file://infra.yml \
-	--region us-east-1 \
-	--output json \
-	--capabilities CAPABILITY_IAM \
-	--parameters \
-		ParameterKey=SubnetId,UsePreviousValue=true \
-		ParameterKey=SecurityGroupId,UsePreviousValue=true \
-		ParameterKey=VpcId,UsePreviousValue=true \
-		ParameterKey=InstanceName,UsePreviousValue=true \
-		ParameterKey=InstanceType,ParameterValue=t3.medium
+export STACK_NAME="mi-stack"
+export INSTANCE_TYPE="t3.medium"
+export INSTANCE_NAME="servidor-pruebas"
+export VPC_ID="vpc-xxxx"
+export SUBNET_ID="subnet-xxxx"
+export SECURITY_GROUP_ID="sg-xxxx"
+export LATEST_AMI_ID="ami-xxxx"
+export LAUNCH_TEMPLATE_NAME="lt-mi-template"
+export AUTOSCALING_GROUP_NAME="asg-mi-grupo"
+export SUBNET1="subnet-xxxx"
+export SUBNET2="subnet-yyyy"
+export TAG_NAME="Web Server - Pruebas"
+./create_stack.sh [create|update]
+```
+
+Si no defines un parámetro, se usará el valor por defecto del script.
+
+### Personalizar parámetros (por argumentos directos)
+
+Puedes modificar el script para aceptar argumentos directos si lo prefieres, pero la forma recomendada es por variables de entorno.
+
+### Parámetros soportados
+
+Todos los parámetros definidos en la sección `Parameters` de `infra.yml` pueden ser sobreescritos.
+
+### Ejemplo de actualización de tipo de instancia
+
+```bash
+export INSTANCE_TYPE="t3.medium"
+./create_stack.sh update
+```
+
+### Ejemplo de cambio de nombre de instancia
+
+```bash
+export INSTANCE_NAME="nuevo-nombre"
+./create_stack.sh update
 ```
 
 # Requerimientos de Diseño para la Infraestructura AWS

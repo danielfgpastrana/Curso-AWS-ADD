@@ -1,30 +1,62 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: >
+Description: |
   Infraestructura mínima en AWS para instancia EC2 en VPC por defecto, siguiendo requerimientos del README.md.
 
 Parameters:
   LatestAmiId:
     Type: String
-    Default: 'ami-0cb22b700f952eacd'
-    Description: 'AMI más reciente de Amazon Linux 2023.'
+    Default: ami-039a65ec6bd28e541 # ID AMI más reciente
+    Description: AMI más reciente de Amazon Linux 2023.
   VpcId:
     Type: String
-    Default: 'vpc-086fe118b4ed5c6e4'
-    Description: 'ID de la VPC por defecto.'
+    Default: vpc-086fe118b4ed5c6e4
+    Description: ID de la VPC por defecto.
   SubnetId:
     Type: String
-    Description: 'ID de la subred pública en la VPC por defecto.'
+    Description: ID de la subred pública en la VPC por defecto.
   InstanceType:
     Type: String
-    Default: 't3.micro'
-    Description: 'Tipo de instancia EC2.'
+    Default: t3.micro
+    Description: Tipo de instancia EC2.
   InstanceName:
     Type: String
-    Default: 'danielfgpastrana'
-    Description: 'Nombre de la instancia EC2.'
+    Default: danieldf-awshero
+    Description: Nombre de la instancia EC2.
   SecurityGroupId:
     Type: String
-    Description: 'ID del grupo de seguridad por defecto de la VPC.'
+    Description: ID del grupo de seguridad por defecto de la VPC.
+  LaunchTemplateName:
+    Type: String
+    Default: lt-danieldf
+    Description: Nombre del Launch Template para EC2.
+  AutoScalingGroupName:
+    Type: String
+    Default: asg-danieldf
+    Description: Nombre del Auto Scaling Group.
+  MinSize:
+    Type: String
+    Default: '1'
+    Description: Tamaño mínimo del grupo de autoescalado.
+  MaxSize:
+    Type: String
+    Default: '1'
+    Description: Tamaño máximo del grupo de autoescalado.
+  DesiredCapacity:
+    Type: String
+    Default: '1'
+    Description: Capacidad deseada del grupo de autoescalado.
+  Subnet1:
+    Type: String
+    Default: subnet-0f86fb485374f9f0a
+    Description: ID de la primera subred pública.
+  Subnet2:
+    Type: String
+    Default: subnet-0323a098b70caa778
+    Description: ID de la segunda subred pública.
+  TagName:
+    Type: String
+    Default: Web Server - danieldf
+    Description: Valor de la etiqueta Name para instancias EC2.
 
 Resources:
   # Rol IAM mínimo para EC2
@@ -38,7 +70,7 @@ Resources:
             Principal:
               Service: ec2.amazonaws.com
             Action: sts:AssumeRole
-      Path: '/'
+      Path: /
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore # Permiso mínimo para administración
 
@@ -48,9 +80,8 @@ Resources:
       Roles:
         - !Ref Ec2InstanceRole
 
-
   # Instancia EC2 en VPC por defecto
-  Ec2Gabriel:
+  Ec2Instance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: !Ref InstanceType
@@ -66,10 +97,47 @@ Resources:
         - Key: Name
           Value: !Ref InstanceName
 
+  Ec2LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Ref LaunchTemplateName
+      LaunchTemplateData:
+        ImageId: !Ref LatestAmiId
+        InstanceType: !Ref InstanceType
+        IamInstanceProfile:
+          Arn: !GetAtt Ec2InstanceProfile.Arn
+        SecurityGroupIds:
+          - !Ref SecurityGroupId
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: !Ref TagName
+
+  Ec2AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Ref AutoScalingGroupName
+      VPCZoneIdentifier:
+        - !Ref Subnet1
+        - !Ref Subnet2
+      LaunchTemplate:
+        LaunchTemplateId: !Ref Ec2LaunchTemplate
+        Version: !GetAtt Ec2LaunchTemplate.LatestVersionNumber
+      MinSize: !Ref MinSize
+      MaxSize: !Ref MaxSize
+      DesiredCapacity: !Ref DesiredCapacity
+      HealthCheckType: EC2
+      HealthCheckGracePeriod: 300
+      Tags:
+        - Key: Name
+          Value: !Ref TagName
+          PropagateAtLaunch: true
+
 Outputs:
   Ec2InstanceId:
-    Description: "ID de la instancia EC2 creada."
-    Value: !Ref Ec2Gabriel
+    Description: ID de la instancia EC2 creada.
+    Value: !Ref Ec2Instance
   Ec2PublicIp:
-    Description: "IP pública de la instancia EC2."
-    Value: !GetAtt Ec2Gabriel.PublicIp
+    Description: IP pública de la instancia EC2.
+    Value: !GetAtt Ec2Instance.PublicIp
