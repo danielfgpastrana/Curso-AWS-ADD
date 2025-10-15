@@ -8,20 +8,20 @@ PROFILE="default"
 
 
 # Parámetros genéricos (modifica según tu entorno)
-VPC_ID="vpc-086fe118b4ed5c6e4"
-SUBNET_ID="subnet-0f86fb485374f9f0a"
+VPC_ID="vpc-077036bfcbb11d434"
+SUBNET_ID="subnet-0768550a08edf7c74"
 INSTANCE_TYPE="t3.micro"
 INSTANCE_NAME="danieldf-instance"
-SECURITY_GROUP_ID="sg-04f4c192bcfcf3f2b"
+SECURITY_GROUP_ID="sg-08fd9307f7c135213"
 LAUNCH_TEMPLATE_NAME="lt-danieldf"
 AUTOSCALING_GROUP_NAME="asg-danieldf"
-SUBNET1="subnet-0f86fb485374f9f0a"
-SUBNET2="subnet-0323a098b70caa778"
+SUBNET1="subnet-0768550a08edf7c74"
+SUBNET2="subnet-021f2eade5dd37c7c"
 TAG_NAME="Web Server - danieldf"
 LATEST_AMI_ID="ami-039a65ec6bd28e541"
-MIN_SIZE="0"
-DESIRED_CAPACITY="0"
-MAX_SIZE="4"
+MIN_SIZE="2"
+DESIRED_CAPACITY="2"
+MAX_SIZE="2"
 
 # Construir la cadena de parámetros para CloudFormation
 PARAMETERS=(
